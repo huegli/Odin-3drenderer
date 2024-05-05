@@ -8,10 +8,13 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/out/debug/renderer",
+            "program": "${workspaceFolder}/renderer",
+            "windows": {
+                "program": "${workspaceFolder}/renderer.exe"
+            },
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}",             
             "preLaunchTask": "Build - Debug"
-        },
-    ],
+        }
+    ]
 }
