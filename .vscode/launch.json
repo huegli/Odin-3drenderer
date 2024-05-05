@@ -5,6 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "cppvsdbg",
+            "request": "launch",
+            "name": "Debug",
+            "program": "${workspaceFolder}/renderer",
+            "windows": {
+                "program": "${workspaceFolder}/renderer.exe"
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}",             
+            "preLaunchTask": "Build - Debug"
+        },
+        {
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
@@ -15,6 +27,7 @@
             "args": [],
             "cwd": "${workspaceFolder}",             
             "preLaunchTask": "Build - Debug"
-        }
+        },
+
     ]
 }
