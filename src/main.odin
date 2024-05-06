@@ -91,6 +91,30 @@ update :: proc() {
 
 }
 
+draw_grid :: proc() {
+	for y: i32 = 0; y < rdr.window_height; y += 1 {
+		for x: i32 = 0; x < rdr.window_width; x += 1 {
+			if x % 10 == 0 || y % 10 == 0 {
+				rdr.color_buffer[(rdr.window_width * y) + x] = 0xFF333333
+			}
+		}
+	}
+}
+
+draw_rect :: proc(x: i32, y: i32, width: i32, height: i32, color: u32) {
+    for i: i32 = 0; i < height; i += 1 {
+        for j: i32 = 0; j < width; j +=1 {
+            rdr.color_buffer[((rdr.window_width * (y + i)) + (x + j))] = color;
+        }
+    }
+}
+
+draw_pixel :: proc(x: i32, y: i32, color: u32) {
+    if (x < rdr.window_width && y < rdr.window_height) {
+        rdr.color_buffer[(rdr.window_width * y) + x] = color;
+    }
+}
+
 render_color_buffer :: proc() {
 	sdl2.UpdateTexture(
 		rdr.color_buffer_texture,
@@ -114,8 +138,13 @@ render :: proc() {
 	sdl2.SetRenderDrawColor(rdr.renderer, 0, 0, 0, 255)
 	sdl2.RenderClear(rdr.renderer)
 
+	draw_grid()
+
+	draw_rect(100,100, 300, 200, 0xFFFF0000)
+	draw_pixel(150, 150, 0xFFFFFF00)
+
 	render_color_buffer()
-	clear_color_buffer(0xFFFFFF00)
+	clear_color_buffer(0xFF000000)
 
 	sdl2.RenderPresent(rdr.renderer)
 }
