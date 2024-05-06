@@ -2,7 +2,6 @@ package display
 
 import "core:c"
 import "core:log"
-import "core:os"
 import "vendor:sdl2"
 
 RENDERER :: struct {
@@ -68,14 +67,14 @@ draw_grid :: proc() {
 draw_rect :: proc(x: i32, y: i32, width: i32, height: i32, color: u32) {
     for i: i32 = 0; i < height; i += 1 {
         for j: i32 = 0; j < width; j +=1 {
-            rdr.color_buffer[((rdr.window_width * (y + i)) + (x + j))] = color;
+            rdr.color_buffer[((rdr.window_width * (y + i)) + (x + j))] = color
         }
     }
 }
 
 draw_pixel :: proc(x: i32, y: i32, color: u32) {
     if (x < rdr.window_width && y < rdr.window_height) {
-        rdr.color_buffer[(rdr.window_width * y) + x] = color;
+        rdr.color_buffer[(rdr.window_width * y) + x] = color
     }
 }
 

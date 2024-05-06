@@ -33,6 +33,8 @@
                     "build",
                     "${fileDirname}",
                     "-debug",
+                    "-vet",
+                    "-strict-style",
                     "-show-timings",
                     "-out:renderer.exe"
                 ]
@@ -41,6 +43,8 @@
                 "args": [
                     "build",
                     "${fileDirname}",
+                    "-vet",
+                    "-strict-style",
                     "-debug",
                     "-show-timings",
                     "-out:renderer"
