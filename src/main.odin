@@ -9,19 +9,22 @@ is_running: bool
 
 setup :: proc() 
 {
+	// bring rdr struct into this namespace
+	using display.rdr
+
     // allocate the required memory in bytes to hold the color buffer
-    display.rdr.color_buffer = make(
+    color_buffer = make(
         [dynamic]u32,
-        size_of(u32) * display.rdr.window_width * display.rdr.window_height,
+        size_of(u32) * window_width * window_height,
     )
 
     // Creating a SDL Texture that is used to display the color buffer
-    display.rdr.color_buffer_texture = sdl2.CreateTexture(
-        display.rdr.renderer,
+    color_buffer_texture = sdl2.CreateTexture(
+        renderer,
         u32(sdl2.PixelFormatEnum.ARGB8888),
         sdl2.TextureAccess.STREAMING,
-        display.rdr.window_width,
-        display.rdr.window_height,
+        window_width,
+        window_height,
     )
 
 }
@@ -51,8 +54,11 @@ update :: proc()
 
 render :: proc() 
 {
-    sdl2.SetRenderDrawColor(display.rdr.renderer, 0, 0, 0, 255)
-    sdl2.RenderClear(display.rdr.renderer)
+    // bring rdr struct into this namespace
+	using display.rdr
+
+	sdl2.SetRenderDrawColor(renderer, 0, 0, 0, 255)
+    sdl2.RenderClear(renderer)
 
     display.draw_grid()
 
@@ -62,13 +68,16 @@ render :: proc()
     display.render_color_buffer()
     display.clear_color_buffer(0xFF000000)
 
-    sdl2.RenderPresent(display.rdr.renderer)
+    sdl2.RenderPresent(renderer)
 }
 
 cleanup :: proc() 
 {
-    delete(display.rdr.color_buffer)
-    sdl2.DestroyTexture(display.rdr.color_buffer_texture)
+	// bring rdr struct into this namespace
+	using display.rdr
+
+    delete(color_buffer)
+    sdl2.DestroyTexture(color_buffer_texture)
 }
 
 main :: proc() 

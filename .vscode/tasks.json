@@ -31,9 +31,9 @@
             "windows": {
                 "args": [
                     "build",
-                    "${fileDirname}",
+                    "${workspaceFolder}/src",
                     "-debug",
-                    "-vet",
+                    "-vet-unused",
                     "-strict-style",
                     "-show-timings",
                     "-out:renderer.exe"
@@ -42,8 +42,8 @@
             "osx": {
                 "args": [
                     "build",
-                    "${fileDirname}",
-                    "-vet",
+                    "${workspaceFolder}/src",
+                    "-vet-unused",
                     "-strict-style",
                     "-debug",
                     "-show-timings",
