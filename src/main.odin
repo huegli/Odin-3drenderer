@@ -51,7 +51,7 @@ initialize_window :: proc() -> (ok: bool) {
 		return false
 	}
 
-	sdl2.SetWindowFullscreen(rdr.window, sdl2.WINDOW_FULLSCREEN)
+	// sdl2.SetWindowFullscreen(rdr.window, sdl2.WINDOW_FULLSCREEN)
 
 	return true
 }
