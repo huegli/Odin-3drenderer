@@ -85,7 +85,6 @@ draw_rect :: proc(x: i32, y: i32, width: i32, height: i32, color: u32)
     }
 }
 
-
 render_color_buffer :: proc() 
 {
     sdl2.UpdateTexture(
@@ -105,12 +104,6 @@ clear_color_buffer :: proc(color: u32)
         }
     }
 
-}
-
-cleanup :: proc() 
-{
-    delete(rdr.color_buffer)
-    sdl2.DestroyTexture(rdr.color_buffer_texture)
 }
 
 destroy_window :: proc() 
