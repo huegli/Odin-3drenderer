@@ -101,4 +101,3 @@ destroy_window :: proc() {
 	sdl2.DestroyWindow(rdr.window)
 	sdl2.Quit()
 }
-
