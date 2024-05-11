@@ -4,6 +4,9 @@ import "core:c"
 import "core:log"
 import "vendor:sdl2"
 
+FPS :: 30
+FRAME_TARGET_TIME :: 1000 / FPS
+
 RENDERER :: struct {
 	window:               ^sdl2.Window,
 	renderer:             ^sdl2.Renderer,

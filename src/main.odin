@@ -9,23 +9,18 @@ is_running: bool
 
 fov_factor :: 640.0
 
-N_POINTS :: 9 * 9 * 9
+previous_frame_time: u32 = 0
 
+triangles_to_render: [renderer.N_MESH_FACES]renderer.triangle_t
 
-cube_points: [N_POINTS]renderer.vec3_t
-projected_points: [N_POINTS]renderer.vec2_t
-
-camera_position: renderer.vec3_t = { 0, 0, 5}
+camera_position: renderer.vec3_t = {0, 0, 5}
 cube_rotation: renderer.vec3_t
 
 setup :: proc() {
 	using renderer
 
 	// allocate the required memory in bytes to hold the color buffer
-	rdr.color_buffer = make(
-		[dynamic]u32,
-		size_of(u32) * rdr.window_width * rdr.window_height,
-	)
+	rdr.color_buffer = make([dynamic]u32, size_of(u32) * rdr.window_width * rdr.window_height)
 
 	// Creating a SDL Texture that is used to display the color buffer
 	rdr.color_buffer_texture = sdl2.CreateTexture(
@@ -36,16 +31,6 @@ setup :: proc() {
 		rdr.window_height,
 	)
 
-	point_count := 0
-
-	for x: f32 = -1.0; x <= 1.0; x += 0.25 {
-		for y: f32 = -1.0; y <= 1.0; y += 0.25 {
-			for z: f32 = -1.0; z <= 1.0; z += 0.25 {
-				cube_points[point_count] = renderer.vec3_t{x, y, z}
-				point_count += 1
-			}
-		}
-	}
 }
 
 process_input :: proc() {
@@ -66,33 +51,57 @@ process_input :: proc() {
 
 project :: proc(point: renderer.vec3_t) -> renderer.vec2_t {
 
-	return renderer.vec2_t{
-		point.x * fov_factor / point.z,
-	    point.y * fov_factor / point.z,
-	}
+	return renderer.vec2_t{point.x * fov_factor / point.z, point.y * fov_factor / point.z}
 }
 
 update :: proc() {
+	// wait some time until we reach the target frame time in milliseconds
+	time_to_wait := renderer.FRAME_TARGET_TIME - (sdl2.GetTicks() - previous_frame_time)
 
-    cube_rotation.x += 0.01
-    cube_rotation.y += 0.01
-    cube_rotation.z += 0.01
-
-	for i: u32 = 0; i < N_POINTS; i += 1 {
-		point := cube_points[i]
-
-		using renderer
-
-        transformed_point := vec3_rotate_x(point, cube_rotation.x)
-        transformed_point = vec3_rotate_y(transformed_point, cube_rotation.y)
-        transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z)
-
-		transformed_point.z -= camera_position.z
-		
-		projected_point := project(transformed_point)
-
-		projected_points[i] = projected_point
+	// only delay execution if we are running too fast
+	if time_to_wait > 0 && time_to_wait <= renderer.FRAME_TARGET_TIME {
+		sdl2.Delay(time_to_wait)
 	}
+
+	previous_frame_time = sdl2.GetTicks()
+
+	cube_rotation.x += 0.01
+	cube_rotation.y += 0.01
+	cube_rotation.z += 0.01
+
+	using renderer
+
+	for i := 0; i < N_MESH_FACES; i += 1 {
+		mesh_face := mesh_faces[i]
+
+		face_vertices: [3]vec3_t
+
+		face_vertices[0] = mesh_vertices[mesh_face.a - 1]
+		face_vertices[1] = mesh_vertices[mesh_face.b - 1]
+		face_vertices[2] = mesh_vertices[mesh_face.c - 1]
+
+		projected_triangle := triangle_t{}
+
+		for j := 0; j < 3; j += 1 {
+			transformed_vertex := face_vertices[j]
+
+			transformed_vertex = vec3_rotate_x(transformed_vertex, cube_rotation.x)
+			transformed_vertex = vec3_rotate_y(transformed_vertex, cube_rotation.y)
+			transformed_vertex = vec3_rotate_z(transformed_vertex, cube_rotation.z)
+
+			transformed_vertex.z -= camera_position.z
+
+			projected_point := project(transformed_vertex)
+
+			projected_point.x += f32(rdr.window_width) / 2.0
+			projected_point.y += f32(rdr.window_height) / 2.0
+
+			projected_triangle.points[j] = projected_point
+		}
+
+		triangles_to_render[i] = projected_triangle
+	}
+
 }
 
 render :: proc() {
@@ -100,15 +109,11 @@ render :: proc() {
 
 	draw_grid()
 
-	for i: u32 = 0; i < N_POINTS; i += 1 {
-		point := projected_points[i]
-		draw_rect(
-			i32(point.x) + rdr.window_width / 2,
-			i32(point.y) + rdr.window_height / 2,
-			4,
-			4,
-			0xFFFFFF00,
-		)
+	for i: u32 = 0; i < N_MESH_FACES; i += 1 {
+		triangle := triangles_to_render[i]
+		draw_rect(i32(triangle.points[0].x), i32(triangle.points[0].y), 3, 3, 0xFFFFFF00)
+		draw_rect(i32(triangle.points[1].x), i32(triangle.points[1].y), 3, 3, 0xFFFFFF00)
+		draw_rect(i32(triangle.points[2].x), i32(triangle.points[2].y), 3, 3, 0xFFFFFF00)
 	}
 
 	render_color_buffer()
