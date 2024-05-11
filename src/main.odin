@@ -2,35 +2,38 @@ package main
 
 import "core:log"
 import "core:os"
-import "display"
+import "renderer"
 import "vendor:sdl2"
 
 is_running: bool
 
-fov_factor :: 100.0
+fov_factor :: 640.0
 
 N_POINTS :: 9 * 9 * 9
 
-vec2_t :: [2]f32
-vec3_t :: [3]f32
 
-cube_points: [N_POINTS]vec3_t
-projected_points: [N_POINTS]vec2_t
+cube_points: [N_POINTS]renderer.vec3_t
+projected_points: [N_POINTS]renderer.vec2_t
+
+camera_position: renderer.vec3_t = { 0, 0, 5}
+cube_rotation: renderer.vec3_t
 
 setup :: proc() {
+	using renderer
+
 	// allocate the required memory in bytes to hold the color buffer
-	display.rdr.color_buffer = make(
+	rdr.color_buffer = make(
 		[dynamic]u32,
-		size_of(u32) * display.rdr.window_width * display.rdr.window_height,
+		size_of(u32) * rdr.window_width * rdr.window_height,
 	)
 
 	// Creating a SDL Texture that is used to display the color buffer
-	display.rdr.color_buffer_texture = sdl2.CreateTexture(
-		display.rdr.renderer,
+	rdr.color_buffer_texture = sdl2.CreateTexture(
+		rdr.renderer,
 		u32(sdl2.PixelFormatEnum.ARGB8888),
 		sdl2.TextureAccess.STREAMING,
-		display.rdr.window_width,
-		display.rdr.window_height,
+		rdr.window_width,
+		rdr.window_height,
 	)
 
 	point_count := 0
@@ -38,8 +41,7 @@ setup :: proc() {
 	for x: f32 = -1.0; x <= 1.0; x += 0.25 {
 		for y: f32 = -1.0; y <= 1.0; y += 0.25 {
 			for z: f32 = -1.0; z <= 1.0; z += 0.25 {
-				new_point := vec3_t{x, y, z}
-				cube_points[point_count] = new_point
+				cube_points[point_count] = renderer.vec3_t{x, y, z}
 				point_count += 1
 			}
 		}
@@ -62,55 +64,71 @@ process_input :: proc() {
 
 }
 
-project :: proc(point: vec3_t) -> vec2_t {
+project :: proc(point: renderer.vec3_t) -> renderer.vec2_t {
 
-	projected_point := vec2_t{point.x * fov_factor, point.y * fov_factor}
-
-	return projected_point
+	return renderer.vec2_t{
+		point.x * fov_factor / point.z,
+	    point.y * fov_factor / point.z,
+	}
 }
 
 update :: proc() {
+
+    cube_rotation.x += 0.01
+    cube_rotation.y += 0.01
+    cube_rotation.z += 0.01
+
 	for i: u32 = 0; i < N_POINTS; i += 1 {
 		point := cube_points[i]
 
-		projected_point := project(point)
+		using renderer
+
+        transformed_point := vec3_rotate_x(point, cube_rotation.x)
+        transformed_point = vec3_rotate_y(transformed_point, cube_rotation.y)
+        transformed_point = vec3_rotate_z(transformed_point, cube_rotation.z)
+
+		transformed_point.z -= camera_position.z
+		
+		projected_point := project(transformed_point)
 
 		projected_points[i] = projected_point
 	}
 }
 
 render :: proc() {
-	display.draw_grid()
+	using renderer
+
+	draw_grid()
 
 	for i: u32 = 0; i < N_POINTS; i += 1 {
 		point := projected_points[i]
-		display.draw_rect(
-			i32(point.x) + display.rdr.window_width / 2,
-			i32(point.y) + display.rdr.window_height / 2,
+		draw_rect(
+			i32(point.x) + rdr.window_width / 2,
+			i32(point.y) + rdr.window_height / 2,
 			4,
 			4,
 			0xFFFFFF00,
 		)
 	}
 
-	display.render_color_buffer()
-	display.clear_color_buffer(0xFF000000)
+	render_color_buffer()
+	clear_color_buffer(0xFF000000)
 
-	sdl2.RenderPresent(display.rdr.renderer)
+	sdl2.RenderPresent(rdr.renderer)
 }
 
 cleanup :: proc() {
-	delete(display.rdr.color_buffer)
-	sdl2.DestroyTexture(display.rdr.color_buffer_texture)
+	delete(renderer.rdr.color_buffer)
+	sdl2.DestroyTexture(renderer.rdr.color_buffer_texture)
 }
 
 main :: proc() {
 	context.logger = log.create_console_logger()
 
-	if is_running = display.initialize_window(); !is_running {
+	if is_running = renderer.initialize_window(); !is_running {
 		os.exit(1)
 	}
-	defer display.destroy_window()
+	defer renderer.destroy_window()
 
 	setup()
 	defer cleanup()

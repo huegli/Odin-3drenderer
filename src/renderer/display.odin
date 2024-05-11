@@ -1,8 +1,7 @@
-package display
+package renderer
 
 import "core:c"
 import "core:log"
-import "core:os"
 import "vendor:sdl2"
 
 RENDERER :: struct {
