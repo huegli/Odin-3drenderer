@@ -24,7 +24,6 @@
             "label": "Build - Debug",
             "group": {
                 "kind": "build",
-                "isDefault": true
             },
             "type": "process",
             "command": "odin",
@@ -32,8 +31,9 @@
                 "args": [
                     "build",
                     "${workspaceFolder}/src",
+                    "-o:minimal",
                     "-debug",
-                    "-vet-unused",
+                    "-vet",
                     "-strict-style",
                     "-show-timings",
                     "-out:renderer.exe"
@@ -43,7 +43,8 @@
                 "args": [
                     "build",
                     "${workspaceFolder}/src",
-                    "-vet-unused",
+                    "-o:minimal",
+                    "-vet",
                     "-strict-style",
                     "-debug",
                     "-show-timings",
@@ -59,21 +60,25 @@
             "windows": {
                 "args": [
                     "build",
-                    "${fileDirname}",
+                    "${workspaceFolder}/src",
+                    "-o:speed",
                     "-vet",
                     "-strict-style",
                     "-show-timings",
+                    "-no-bounds-check",
                     "-out:renderer.exe"
                 ]
             },
             "osx": {
                 "args": [
                     "build",
-                    "${fileDirname}",
+                    "${workspaceFolder}/src",
+                    "-o:speed",
                     "-vet",
                     "-strict-style",
                     "-show-timings",
-                    "-out:renderer.exe"
+                    "-no-bounds-check",
+                    "-out:renderer"
                 ]
             }
         },
@@ -84,7 +89,7 @@
             "command": "odin",
             "args": [
                 "check",
-                "${fileDirname}",
+                "${workspaceFolder}/src",
                 "-vet",
                 "-strict-style"
             ]

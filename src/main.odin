@@ -1,8 +1,7 @@
-package main
+package renderer
 
 import "core:log"
 import "core:os"
-import "renderer"
 import "vendor:sdl2"
 
 is_running: bool
@@ -11,13 +10,11 @@ fov_factor :: 640.0
 
 previous_frame_time: u32 = 0
 
-triangles_to_render: [dynamic]renderer.triangle_t
+triangles_to_render: [dynamic]triangle_t
 
-camera_position: renderer.vec3_t = {0, 0, 5}
+camera_position: vec3_t = {0, 0, 5}
 
 setup :: proc() {
-	using renderer
-
 	// allocate the required memory in bytes to hold the color buffer
 	rdr.color_buffer = make([dynamic]u32, size_of(u32) * rdr.window_width * rdr.window_height)
 
@@ -50,25 +47,23 @@ process_input :: proc() {
 
 }
 
-project :: proc(point: renderer.vec3_t) -> renderer.vec2_t {
+project :: proc(point: vec3_t) -> vec2_t {
 
-	return renderer.vec2_t{point.x * fov_factor / point.z, point.y * fov_factor / point.z}
+	return vec2_t{point.x * fov_factor / point.z, point.y * fov_factor / point.z}
 }
 
 update :: proc() {
 	// wait some time until we reach the target frame time in milliseconds
-	time_to_wait := renderer.FRAME_TARGET_TIME - (sdl2.GetTicks() - previous_frame_time)
+	time_to_wait := FRAME_TARGET_TIME - (sdl2.GetTicks() - previous_frame_time)
 
 	// only delay execution if we are running too fast
-	if time_to_wait > 0 && time_to_wait <= renderer.FRAME_TARGET_TIME {
+	if time_to_wait > 0 && time_to_wait <= FRAME_TARGET_TIME {
 		sdl2.Delay(time_to_wait)
 	}
 
 	previous_frame_time = sdl2.GetTicks()
 
 	clear(&triangles_to_render)
-
-	using renderer
 
 	mesh.rotation.x += 0.01
 	mesh.rotation.y += 0.01
@@ -107,8 +102,6 @@ update :: proc() {
 }
 
 render :: proc() {
-	using renderer
-
 	draw_grid()
 
 	for triangle in triangles_to_render {
@@ -134,17 +127,17 @@ render :: proc() {
 }
 
 cleanup :: proc() {
-	delete(renderer.rdr.color_buffer)
-	sdl2.DestroyTexture(renderer.rdr.color_buffer_texture)
+	delete(rdr.color_buffer)
+	sdl2.DestroyTexture(rdr.color_buffer_texture)
 }
 
 main :: proc() {
 	context.logger = log.create_console_logger()
 
-	if is_running = renderer.initialize_window(); !is_running {
+	if is_running = initialize_window(); !is_running {
 		os.exit(1)
 	}
-	defer renderer.destroy_window()
+	defer destroy_window()
 
 	setup()
 	defer cleanup()
