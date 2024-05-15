@@ -11,10 +11,9 @@ fov_factor :: 640.0
 
 previous_frame_time: u32 = 0
 
-triangles_to_render: [renderer.N_MESH_FACES]renderer.triangle_t
+triangles_to_render: [dynamic]renderer.triangle_t
 
 camera_position: renderer.vec3_t = {0, 0, 5}
-cube_rotation: renderer.vec3_t
 
 setup :: proc() {
 	using renderer
@@ -30,6 +29,8 @@ setup :: proc() {
 		rdr.window_width,
 		rdr.window_height,
 	)
+
+	load_cube_mesh_data()
 
 }
 
@@ -65,29 +66,30 @@ update :: proc() {
 
 	previous_frame_time = sdl2.GetTicks()
 
-	cube_rotation.x += 0.01
-	cube_rotation.y += 0.01
-	cube_rotation.z += 0.01
+	clear(&triangles_to_render)
 
 	using renderer
 
-	for i := 0; i < N_MESH_FACES; i += 1 {
-		mesh_face := mesh_faces[i]
+	mesh.rotation.x += 0.01
+	mesh.rotation.y += 0.01
+	mesh.rotation.z += 0.01
+
+	for mesh_face in mesh.faces {
 
 		face_vertices: [3]vec3_t
 
-		face_vertices[0] = mesh_vertices[mesh_face.a - 1]
-		face_vertices[1] = mesh_vertices[mesh_face.b - 1]
-		face_vertices[2] = mesh_vertices[mesh_face.c - 1]
+		face_vertices[0] = mesh.vertices[mesh_face.a - 1]
+		face_vertices[1] = mesh.vertices[mesh_face.b - 1]
+		face_vertices[2] = mesh.vertices[mesh_face.c - 1]
 
 		projected_triangle := triangle_t{}
 
 		for j := 0; j < 3; j += 1 {
 			transformed_vertex := face_vertices[j]
 
-			transformed_vertex = vec3_rotate_x(transformed_vertex, cube_rotation.x)
-			transformed_vertex = vec3_rotate_y(transformed_vertex, cube_rotation.y)
-			transformed_vertex = vec3_rotate_z(transformed_vertex, cube_rotation.z)
+			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x)
+			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y)
+			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z)
 
 			transformed_vertex.z -= camera_position.z
 
@@ -99,7 +101,7 @@ update :: proc() {
 			projected_triangle.points[j] = projected_point
 		}
 
-		triangles_to_render[i] = projected_triangle
+		append(&triangles_to_render, projected_triangle)
 	}
 
 }
@@ -109,8 +111,7 @@ render :: proc() {
 
 	draw_grid()
 
-	for i: u32 = 0; i < N_MESH_FACES; i += 1 {
-		triangle := triangles_to_render[i]
+	for triangle in triangles_to_render {
 		draw_rect(i32(triangle.points[0].x), i32(triangle.points[0].y), 3, 3, 0xFFFFFF00)
 		draw_rect(i32(triangle.points[1].x), i32(triangle.points[1].y), 3, 3, 0xFFFFFF00)
 		draw_rect(i32(triangle.points[2].x), i32(triangle.points[2].y), 3, 3, 0xFFFFFF00)
