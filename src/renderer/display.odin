@@ -2,6 +2,7 @@ package renderer
 
 import "core:c"
 import "core:log"
+import "core:math"
 import "vendor:sdl2"
 
 FPS :: 30
@@ -69,6 +70,31 @@ draw_pixel :: proc(x: i32, y: i32, color: u32) {
 	if (x < rdr.window_width && y < rdr.window_height) {
 		rdr.color_buffer[(rdr.window_width * y) + x] = color
 	}
+}
+
+draw_line :: proc(x0: i32, y0: i32, x1: i32, y1: i32, color: u32) {
+	delta_x := x1 - x0
+	delta_y := y1 - y0
+
+	side_length := abs(delta_x) >= abs(delta_y) ? abs(delta_x) : abs(delta_y)
+
+	x_inc := f32(delta_x) / f32(side_length)
+	y_inc := f32(delta_y) / f32(side_length)
+
+	current_x := f32(x0)
+	current_y := f32(y0)
+
+	for i: i32 = 0; i <= side_length; i += 1 {
+		draw_pixel(i32(math.round(current_x)), i32(math.round(current_y)), color)
+		current_x += x_inc
+		current_y += y_inc
+	}
+}
+
+draw_triangle :: proc(x0: i32, y0: i32, x1: i32, y1: i32, x2: i32, y2: i32, color: u32) {
+	draw_line(x0, y0, x1, y1, color)
+	draw_line(x1, y1, x2, y2, color)
+	draw_line(x2, y2, x0, y0, color)
 }
 
 draw_rect :: proc(x: i32, y: i32, width: i32, height: i32, color: u32) {

@@ -114,6 +114,16 @@ render :: proc() {
 		draw_rect(i32(triangle.points[0].x), i32(triangle.points[0].y), 3, 3, 0xFFFFFF00)
 		draw_rect(i32(triangle.points[1].x), i32(triangle.points[1].y), 3, 3, 0xFFFFFF00)
 		draw_rect(i32(triangle.points[2].x), i32(triangle.points[2].y), 3, 3, 0xFFFFFF00)
+
+		draw_triangle(
+			i32(triangle.points[0].x),
+			i32(triangle.points[0].y),
+			i32(triangle.points[1].x),
+			i32(triangle.points[1].y),
+			i32(triangle.points[2].x),
+			i32(triangle.points[2].y),
+			0xFF00FF00,
+		)
 	}
 
 	render_color_buffer()
