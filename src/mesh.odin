@@ -1,5 +1,9 @@
 package renderer
 
+import "core:os"
+import "core:strconv"
+import "core:strings"
+
 mesh_t :: struct {
 	vertices: [dynamic]vec3_t,
 	faces:    [dynamic]face_t,
@@ -49,5 +53,33 @@ load_cube_mesh_data :: proc() {
 	}
 	for cube_face in cube_faces {
 		append(&mesh.faces, cube_face)
+	}
+}
+
+load_obj_file_data :: proc(filename: string) {
+	data, ok := os.read_entire_file(filename)
+	if !ok {
+		return
+	}
+	defer delete(data)
+
+	it := string(data)
+	for line in strings.split_lines_iterator(&it) {
+		if strings.has_prefix(line, "v ") {
+			words := strings.split(line, " ")
+			x, _ := strconv.parse_f32(words[1])
+			y, _ := strconv.parse_f32(words[2])
+			z, _ := strconv.parse_f32(words[3])
+			append(&mesh.vertices, vec3_t{x, y, z})
+		} else if strings.has_prefix(line, "f ") {
+			words := strings.split(line, " ")
+			vertices := strings.split(words[1], "/")
+			a, _ := strconv.parse_int(vertices[0])
+			vertices = strings.split(words[2], "/")
+			b, _ := strconv.parse_int(vertices[0])
+			vertices = strings.split(words[3], "/")
+			c, _ := strconv.parse_int(vertices[0])
+			append(&mesh.faces, face_t{a, b, c})
+		}
 	}
 }

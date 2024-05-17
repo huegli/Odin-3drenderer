@@ -27,8 +27,7 @@ setup :: proc() {
 		rdr.window_height,
 	)
 
-	load_cube_mesh_data()
-
+	load_obj_file_data("assets/f22.obj")
 }
 
 process_input :: proc() {
@@ -66,8 +65,8 @@ update :: proc() {
 	clear(&triangles_to_render)
 
 	mesh.rotation.x += 0.01
-	mesh.rotation.y += 0.01
-	mesh.rotation.z += 0.01
+	mesh.rotation.y += 0.00
+	mesh.rotation.z += 0.00
 
 	for mesh_face in mesh.faces {
 
