@@ -12,7 +12,7 @@ previous_frame_time: u32 = 0
 
 triangles_to_render: [dynamic]triangle_t
 
-camera_position: vec3_t = {0, 0, 5}
+camera_position: vec3_t
 
 setup :: proc() {
 	// allocate the required memory in bytes to hold the color buffer
@@ -76,18 +76,45 @@ update :: proc() {
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1]
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1]
 
-		projected_triangle := triangle_t{}
+		transformed_vertices: [3]vec3_t
 
-		for j := 0; j < 3; j += 1 {
+		for j in 0 ..< 3 {
 			transformed_vertex := face_vertices[j]
 
 			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x)
 			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y)
 			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z)
 
-			transformed_vertex.z -= camera_position.z
+			transformed_vertex.z += 5
 
-			projected_point := project(transformed_vertex)
+			transformed_vertices[j] = transformed_vertex
+		}
+
+		// Back-face culling
+		vector_a := transformed_vertices[0] //   A
+		vector_b := transformed_vertices[1] //  / \
+		vector_c := transformed_vertices[2] // B---C
+
+		vector_ab := vector_b - vector_a
+		vector_ac := vector_c - vector_a
+
+		// Compute the normal of the triangle
+		normal := vec3_cross(vector_ab, vector_ac)
+
+		// Normalize the face normal vector_a
+		normal = vec3_normalize(normal)
+
+		// Find the vector between point A and the camera
+		camera_ray := camera_position - vector_a
+
+		if vec3_dot(normal, camera_ray) < 0 {
+			continue
+		}
+
+		projected_triangle := triangle_t{}
+
+		for j in 0 ..< 3 {
+			projected_point := project(transformed_vertices[j])
 
 			projected_point.x += f32(rdr.window_width) / 2.0
 			projected_point.y += f32(rdr.window_height) / 2.0
