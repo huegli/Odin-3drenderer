@@ -79,7 +79,7 @@ load_obj_file_data :: proc(filename: string) {
 			b, _ := strconv.parse_int(vertices[0])
 			vertices = strings.split(words[3], "/")
 			c, _ := strconv.parse_int(vertices[0])
-			append(&mesh.faces, face_t{a, b, c})
+			append(&mesh.faces, face_t{i32(a), i32(b), i32(c)})
 		}
 	}
 }

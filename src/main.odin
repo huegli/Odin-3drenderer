@@ -130,10 +130,21 @@ update :: proc() {
 render :: proc() {
 	draw_grid()
 
+	// draw_filled_triangle(100, 100, 400, 50, 500, 300, 0xFF00FF00)
 	for triangle in triangles_to_render {
 		draw_rect(i32(triangle.points[0].x), i32(triangle.points[0].y), 3, 3, 0xFFFFFF00)
 		draw_rect(i32(triangle.points[1].x), i32(triangle.points[1].y), 3, 3, 0xFFFFFF00)
 		draw_rect(i32(triangle.points[2].x), i32(triangle.points[2].y), 3, 3, 0xFFFFFF00)
+
+		draw_filled_triangle(
+			i32(triangle.points[0].x),
+			i32(triangle.points[0].y),
+			i32(triangle.points[1].x),
+			i32(triangle.points[1].y),
+			i32(triangle.points[2].x),
+			i32(triangle.points[2].y),
+			0xFFFFFFFF,
+		)
 
 		draw_triangle(
 			i32(triangle.points[0].x),
@@ -142,7 +153,7 @@ render :: proc() {
 			i32(triangle.points[1].y),
 			i32(triangle.points[2].x),
 			i32(triangle.points[2].y),
-			0xFF00FF00,
+			0xFF000000,
 		)
 	}
 
