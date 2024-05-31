@@ -15,6 +15,10 @@ triangles_to_render: [dynamic]triangle_t
 camera_position: vec3_t
 
 setup :: proc() {
+
+	rdr.render_method = .RENDER_WIRE
+	rdr.cull_method = .CULL_BACKFACE
+
 	// allocate the required memory in bytes to hold the color buffer
 	rdr.color_buffer = make([dynamic]u32, size_of(u32) * rdr.window_width * rdr.window_height)
 
@@ -41,7 +45,24 @@ process_input :: proc() {
 		if (event.key.keysym.sym == .ESCAPE) {
 			is_running = false
 		}
-
+		if (event.key.keysym.sym == .NUM1) {
+			rdr.render_method = .RENDER_WIRE_VERTEX
+		}
+		if (event.key.keysym.sym == .NUM2) {
+			rdr.render_method = .RENDER_WIRE
+		}
+		if (event.key.keysym.sym == .NUM3) {
+			rdr.render_method = .RENDER_FILL_TRIANGLE
+		}
+		if (event.key.keysym.sym == .NUM4) {
+			rdr.render_method = .RENDER_FILL_TRIANGLE_WIRE
+		}
+		if (event.key.keysym.sym == .C) {
+			rdr.cull_method = .CULL_BACKFACE
+		}
+		if (event.key.keysym.sym == .D) {
+			rdr.cull_method = .CULL_NONE
+		}
 	}
 
 }
@@ -107,7 +128,7 @@ update :: proc() {
 		// Find the vector between point A and the camera
 		camera_ray := camera_position - vector_a
 
-		if vec3_dot(normal, camera_ray) < 0 {
+		if rdr.cull_method == .CULL_BACKFACE && vec3_dot(normal, camera_ray) < 0 {
 			continue
 		}
 
@@ -132,29 +153,58 @@ render :: proc() {
 
 	// draw_filled_triangle(100, 100, 400, 50, 500, 300, 0xFF00FF00)
 	for triangle in triangles_to_render {
-		draw_rect(i32(triangle.points[0].x), i32(triangle.points[0].y), 3, 3, 0xFFFFFF00)
-		draw_rect(i32(triangle.points[1].x), i32(triangle.points[1].y), 3, 3, 0xFFFFFF00)
-		draw_rect(i32(triangle.points[2].x), i32(triangle.points[2].y), 3, 3, 0xFFFFFF00)
 
-		draw_filled_triangle(
-			i32(triangle.points[0].x),
-			i32(triangle.points[0].y),
-			i32(triangle.points[1].x),
-			i32(triangle.points[1].y),
-			i32(triangle.points[2].x),
-			i32(triangle.points[2].y),
-			0xFFFFFFFF,
-		)
 
-		draw_triangle(
-			i32(triangle.points[0].x),
-			i32(triangle.points[0].y),
-			i32(triangle.points[1].x),
-			i32(triangle.points[1].y),
-			i32(triangle.points[2].x),
-			i32(triangle.points[2].y),
-			0xFF000000,
-		)
+		if rdr.render_method == .RENDER_FILL_TRIANGLE ||
+		   rdr.render_method == .RENDER_FILL_TRIANGLE_WIRE {
+			draw_filled_triangle(
+				i32(triangle.points[0].x),
+				i32(triangle.points[0].y),
+				i32(triangle.points[1].x),
+				i32(triangle.points[1].y),
+				i32(triangle.points[2].x),
+				i32(triangle.points[2].y),
+				0xFF555555,
+			)
+		}
+
+		if rdr.render_method == .RENDER_WIRE ||
+		   rdr.render_method == .RENDER_WIRE_VERTEX ||
+		   rdr.render_method == .RENDER_FILL_TRIANGLE_WIRE {
+			draw_triangle(
+				i32(triangle.points[0].x),
+				i32(triangle.points[0].y),
+				i32(triangle.points[1].x),
+				i32(triangle.points[1].y),
+				i32(triangle.points[2].x),
+				i32(triangle.points[2].y),
+				0xFF00FF00,
+			)
+		}
+
+		if rdr.render_method == .RENDER_WIRE_VERTEX {
+			draw_rect(
+				i32(triangle.points[0].x - 3),
+				i32(triangle.points[0].y - 3),
+				6,
+				6,
+				0xFFFF0000,
+			)
+			draw_rect(
+				i32(triangle.points[1].x - 3),
+				i32(triangle.points[1].y - 3),
+				6,
+				6,
+				0xFFFF0000,
+			)
+			draw_rect(
+				i32(triangle.points[2].x - 3),
+				i32(triangle.points[2].y - 3),
+				6,
+				6,
+				0xFFFF0000,
+			)
+		}
 	}
 
 	render_color_buffer()

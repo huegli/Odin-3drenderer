@@ -8,6 +8,18 @@ import "vendor:sdl2"
 FPS :: 30
 FRAME_TARGET_TIME :: 1000 / FPS
 
+Cull_Method :: enum {
+	CULL_NONE,
+	CULL_BACKFACE,
+}
+
+Render_Method :: enum {
+	RENDER_WIRE,
+	RENDER_WIRE_VERTEX,
+	RENDER_FILL_TRIANGLE,
+	RENDER_FILL_TRIANGLE_WIRE,
+}
+
 RENDERER :: struct {
 	window:               ^sdl2.Window,
 	renderer:             ^sdl2.Renderer,
@@ -15,6 +27,8 @@ RENDERER :: struct {
 	color_buffer_texture: ^sdl2.Texture,
 	window_width:         c.int,
 	window_height:        c.int,
+	render_method:        Render_Method,
+	cull_method:          Cull_Method,
 }
 
 rdr := RENDERER{}
