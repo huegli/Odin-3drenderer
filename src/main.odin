@@ -1,7 +1,9 @@
 package renderer
 
 import "core:log"
+import "core:fmt"
 import "core:os"
+import "core:sort"
 import "vendor:sdl2"
 
 is_running: bool
@@ -133,7 +135,7 @@ update :: proc() {
 			continue
 		}
 
-		projected_points : [3]vec2_t
+		projected_points: [3]vec2_t
 
 		// Loop all three vertices to perform the projection
 		for j in 0 ..< 3 {
@@ -147,21 +149,48 @@ update :: proc() {
 		}
 
 		// Calculate the average depth for each face based on the vertices after transformation
-		avg_depth := (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0
+		avg_depth :=
+			(transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) /
+			3.0
 
 
-		projected_triangle : triangle_t = {
-			points = {
-				{ projected_points[0].x, projected_points[0].y},
-				{ projected_points[1].x, projected_points[1].y},
-				{ projected_points[2].x, projected_points[2].y},
+		projected_triangle: triangle_t = {
+			points    = {
+				{projected_points[0].x, projected_points[0].y},
+				{projected_points[1].x, projected_points[1].y},
+				{projected_points[2].x, projected_points[2].y},
 			},
-			color = mesh_face.color,
+			color     = mesh_face.color,
 			avg_depth = avg_depth,
 		}
 
 		append(&triangles_to_render, projected_triangle)
 	}
+
+	// for t in triangles_to_render {
+	// 	fmt.printf("unsorted depth: %f\n", t.avg_depth)
+	// }
+
+	// Sort the triangles to render by their avg depth
+	sort_triangles := sort.Interface {
+		len = proc(_: sort.Interface) -> int {
+			return len(triangles_to_render)
+		},
+		less = proc(_: sort.Interface, i, j: int) -> bool {
+			return triangles_to_render[i].avg_depth > triangles_to_render[j].avg_depth
+		},
+		swap = proc(_: sort.Interface, i, j: int) {
+			triangles_to_render[i], triangles_to_render[j] =
+				triangles_to_render[j], triangles_to_render[i]
+		},
+		collection = &triangles_to_render,
+	}
+	sort.sort(sort_triangles)
+
+	// for t in triangles_to_render {
+	// 	fmt.printf("sorted depth: %f\n", t.avg_depth)
+	// }
+	// fmt.printf("-----------------\n")
 
 }
 
