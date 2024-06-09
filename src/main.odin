@@ -31,7 +31,8 @@ setup :: proc() {
 		rdr.window_height,
 	)
 
-	load_obj_file_data("assets/f22.obj")
+	// load_obj_file_data("assets/f22.obj")
+	load_cube_mesh_data()
 }
 
 process_input :: proc() {
@@ -86,8 +87,8 @@ update :: proc() {
 	clear(&triangles_to_render)
 
 	mesh.rotation.x += 0.01
-	mesh.rotation.y += 0.00
-	mesh.rotation.z += 0.00
+	mesh.rotation.y += 0.01
+	mesh.rotation.z += 0.01
 
 	for mesh_face in mesh.faces {
 
@@ -132,15 +133,31 @@ update :: proc() {
 			continue
 		}
 
-		projected_triangle := triangle_t{}
+		projected_points : [3]vec2_t
 
+		// Loop all three vertices to perform the projection
 		for j in 0 ..< 3 {
-			projected_point := project(transformed_vertices[j])
+			// Project the current point
+			projected_points[j] = project(transformed_vertices[j])
 
-			projected_point.x += f32(rdr.window_width) / 2.0
-			projected_point.y += f32(rdr.window_height) / 2.0
+			// scale and translate the projected point to the center of the screen
+			projected_points[j].x += f32(rdr.window_width) / 2.0
+			projected_points[j].y += f32(rdr.window_height) / 2.0
 
-			projected_triangle.points[j] = projected_point
+		}
+
+		// Calculate the average depth for each face based on the vertices after transformation
+		avg_depth := (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3.0
+
+
+		projected_triangle : triangle_t = {
+			points = {
+				{ projected_points[0].x, projected_points[0].y},
+				{ projected_points[1].x, projected_points[1].y},
+				{ projected_points[2].x, projected_points[2].y},
+			},
+			color = mesh_face.color,
+			avg_depth = avg_depth,
 		}
 
 		append(&triangles_to_render, projected_triangle)
@@ -164,7 +181,7 @@ render :: proc() {
 				i32(triangle.points[1].y),
 				i32(triangle.points[2].x),
 				i32(triangle.points[2].y),
-				0xFF555555,
+				triangle.color,
 			)
 		}
 

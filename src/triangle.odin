@@ -4,10 +4,13 @@ face_t :: struct {
 	a: i32,
 	b: i32,
 	c: i32,
+	color: u32,
 }
 
 triangle_t :: struct {
 	points: [3]vec2_t,
+	color: u32,
+	avg_depth: f32,
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
