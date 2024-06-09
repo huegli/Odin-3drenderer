@@ -3,7 +3,7 @@ package renderer
 import "core:fmt"
 import "core:log"
 import "core:os"
-import "core:sort"
+import "core:slice"
 import "vendor:sdl2"
 
 is_running: bool
@@ -13,6 +13,7 @@ fov_factor :: 640.0
 previous_frame_time: u32 = 0
 
 triangles_to_render: [dynamic]triangle_t
+sorted_triangles: []triangle_t
 
 camera_position: vec3_t
 
@@ -168,27 +169,19 @@ update :: proc() {
 	}
 
 	// Sort the triangles to render by their avg depth
-	sort_triangles := sort.Interface {
-		len = proc(_: sort.Interface) -> int {
-			return len(triangles_to_render)
-		},
-		less = proc(_: sort.Interface, i, j: int) -> bool {
-			return triangles_to_render[i].avg_depth < triangles_to_render[j].avg_depth
-		},
-		swap = proc(_: sort.Interface, i, j: int) {
-			triangles_to_render[i], triangles_to_render[j] =
-				triangles_to_render[j], triangles_to_render[i]
-		},
-		collection = &triangles_to_render,
-	}
-	sort.sort(sort_triangles)
+	sorted_triangles = triangles_to_render[:]
+	slice.sort_by(sorted_triangles, proc(a, b: triangle_t) -> bool {
+		return a.avg_depth < b.avg_depth
+	})
+
+
 }
 
 render :: proc() {
 	draw_grid()
 
 	// draw_filled_triangle(100, 100, 400, 50, 500, 300, 0xFF00FF00)
-	for triangle in triangles_to_render {
+	for triangle in sorted_triangles {
 
 
 		if rdr.render_method == .RENDER_FILL_TRIANGLE ||
