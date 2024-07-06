@@ -1,6 +1,5 @@
 package renderer
 
-import "core:fmt"
 import "core:log"
 import "core:os"
 import "core:slice"
