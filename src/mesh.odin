@@ -5,12 +5,14 @@ import "core:strconv"
 import "core:strings"
 
 mesh_t :: struct {
-	vertices: [dynamic]vec3_t,
-	faces:    [dynamic]face_t,
-	rotation: vec3_t,
+	vertices:    [dynamic]vec3_t,
+	faces:       [dynamic]face_t,
+	rotation:    vec3_t,
+	scale:       vec3_t,
+	translation: vec3_t,
 }
 
-mesh: mesh_t
+mesh: mesh_t = {{}, {}, vec3_t{0, 0, 0}, vec3_t{1, 1, 1}, vec3_t{0, 0, 0}}
 
 N_CUBE_VERTICES :: 8
 N_CUBE_FACES :: (6 * 2)

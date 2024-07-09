@@ -1,6 +1,7 @@
 package renderer
 
 import "core:log"
+import "core:math"
 import "core:os"
 import "core:slice"
 import "vendor:sdl2"
@@ -91,6 +92,47 @@ update :: proc() {
 	mesh.rotation.x += 0.01
 	mesh.rotation.y += 0.01
 	mesh.rotation.z += 0.01
+	mesh.scale.x += 0.002
+	mesh.scale.y += 0.001
+	mesh.translation.x += 0.01
+	// Translate the points away from the camera
+	mesh.translation.z = 5.0
+
+	// create scale, translate and rotation matrices that will be used to transform the vertices
+	scale_matrix := matrix[4, 4]f32{
+		mesh.scale.x, 0, 0, 0, 
+		0, mesh.scale.y, 0, 0, 
+		0, 0, mesh.scale.z, 0, 
+		0, 0, 0, 1, 
+	}
+
+	translation_matrix := matrix[4, 4]f32{
+		1, 0, 0, mesh.translation.x, 
+		0, 1, 0, mesh.translation.y, 
+		0, 0, 1, mesh.translation.z, 
+		0, 0, 0, 1, 
+	}
+
+	rotation_x_matrix := matrix[4, 4]f32{
+		1, 0, 0, 0, 
+		0, math.cos(mesh.rotation.x), -math.sin(mesh.rotation.x), 0, 
+		0, math.sin(mesh.rotation.x), math.cos(mesh.rotation.x), 0, 
+		0, 0, 0, 1, 
+	}
+
+	rotation_y_matrix := matrix[4, 4]f32{
+		math.cos(mesh.rotation.y), 0, math.sin(mesh.rotation.y), 0, 
+		0, 1, 0, 0, 
+		-math.sin(mesh.rotation.y), 0, math.cos(mesh.rotation.y), 0, 
+		0, 0, 0, 1, 
+	}
+
+	rotation_z_matrix := matrix[4, 4]f32{
+		math.cos(mesh.rotation.z), -math.sin(mesh.rotation.z), 0, 0, 
+		math.sin(mesh.rotation.z), math.cos(mesh.rotation.z), 0, 0, 
+		0, 0, 1, 0, 
+		0, 0, 0, 1, 
+	}
 
 	for mesh_face in mesh.faces {
 
@@ -100,24 +142,29 @@ update :: proc() {
 		face_vertices[1] = mesh.vertices[mesh_face.b - 1]
 		face_vertices[2] = mesh.vertices[mesh_face.c - 1]
 
-		transformed_vertices: [3]vec3_t
+		transformed_vertices: [3]vec4_t
 
+		// loop all three vertices of this current face and apply the transformation
 		for j in 0 ..< 3 {
-			transformed_vertex := face_vertices[j]
+			transformed_vertex := vec4_from_vec3(face_vertices[j])
 
-			transformed_vertex = vec3_rotate_x(transformed_vertex, mesh.rotation.x)
-			transformed_vertex = vec3_rotate_y(transformed_vertex, mesh.rotation.y)
-			transformed_vertex = vec3_rotate_z(transformed_vertex, mesh.rotation.z)
+			// Create a world matrix that will transform the vertices
+			world_matrix :=
+				translation_matrix *
+				rotation_z_matrix *
+				rotation_y_matrix *
+				rotation_x_matrix *
+				scale_matrix
 
-			transformed_vertex.z += 5
+			transformed_vertex = world_matrix * transformed_vertex
 
 			transformed_vertices[j] = transformed_vertex
 		}
 
 		// Back-face culling
-		vector_a := transformed_vertices[0] //   A
-		vector_b := transformed_vertices[1] //  / \
-		vector_c := transformed_vertices[2] // B---C
+		vector_a := vec3_from_vec4(transformed_vertices[0]) //   A
+		vector_b := vec3_from_vec4(transformed_vertices[1]) //  / \
+		vector_c := vec3_from_vec4(transformed_vertices[2]) // B---C
 
 		vector_ab := vector_b - vector_a
 		vector_ac := vector_c - vector_a
@@ -140,7 +187,7 @@ update :: proc() {
 		// Loop all three vertices to perform the projection
 		for j in 0 ..< 3 {
 			// Project the current point
-			projected_points[j] = project(transformed_vertices[j])
+			projected_points[j] = project(vec3_from_vec4(transformed_vertices[j]))
 
 			// scale and translate the projected point to the center of the screen
 			projected_points[j].x += f32(rdr.window_width) / 2.0

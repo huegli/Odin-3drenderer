@@ -4,6 +4,7 @@ import "core:math"
 
 vec2_t :: distinct [2]f32
 vec3_t :: distinct [3]f32
+vec4_t :: distinct [4]f32
 
 vec2_dot :: proc(a: vec2_t, b: vec2_t) -> f32 {
 	i := a * b
@@ -59,4 +60,12 @@ vec3_rotate_z :: proc(v: vec3_t, angle: f32) -> vec3_t {
 		v.x * math.sin(angle) + v.y * math.cos(angle),
 		v.z,
 	}
+}
+
+vec4_from_vec3 :: proc(v: vec3_t) -> vec4_t {
+	return vec4_t{v.x, v.y, v.z, 1.0}
+}
+
+vec3_from_vec4 :: proc(v: vec4_t) -> vec3_t {
+	return vec3_t{v.x, v.y, v.z}
 }
